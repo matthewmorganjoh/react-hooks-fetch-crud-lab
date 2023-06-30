@@ -1,25 +1,43 @@
 import React, { useState } from "react";
 
-function QuestionForm(props) {
+function QuestionForm() {
   const [formData, setFormData] = useState({
     prompt: "",
-    answer1: "",
-    answer2: "",
-    answer3: "",
-    answer4: "",
+    answers: ["", "", "", ""],
     correctIndex: 0,
   });
 
   function handleChange(event) {
-    setFormData({
-      ...formData,
-      [event.target.name]: event.target.value,
-    });
+    const { name, value } = event.target;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
   }
 
   function handleSubmit(event) {
     event.preventDefault();
-    console.log(formData);
+
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: formData.prompt,
+        answers: formData.answers,
+        correctIndex: parseInt(formData.correctIndex),
+      }),
+    };
+
+    fetch("http://localhost:4000/questions", requestOptions)
+      .then((response) => response.json())
+      .then((data) => {
+        // Handle the response data if needed
+        console.log(data);
+      })
+      .catch((error) => {
+        // Handle the error if needed
+        console.error(error);
+      });
   }
 
   return (
@@ -40,8 +58,18 @@ function QuestionForm(props) {
           <input
             type="text"
             name="answer1"
-            value={formData.answer1}
-            onChange={handleChange}
+            value={formData.answers[0]}
+            onChange={(e) =>
+              setFormData((prevFormData) => ({
+                ...prevFormData,
+                answers: [
+                  e.target.value,
+                  prevFormData.answers[1],
+                  prevFormData.answers[2],
+                  prevFormData.answers[3],
+                ],
+              }))
+            }
           />
         </label>
         <label>
@@ -49,8 +77,18 @@ function QuestionForm(props) {
           <input
             type="text"
             name="answer2"
-            value={formData.answer2}
-            onChange={handleChange}
+            value={formData.answers[1]}
+            onChange={(e) =>
+              setFormData((prevFormData) => ({
+                ...prevFormData,
+                answers: [
+                  prevFormData.answers[0],
+                  e.target.value,
+                  prevFormData.answers[2],
+                  prevFormData.answers[3],
+                ],
+              }))
+            }
           />
         </label>
         <label>
@@ -58,8 +96,18 @@ function QuestionForm(props) {
           <input
             type="text"
             name="answer3"
-            value={formData.answer3}
-            onChange={handleChange}
+            value={formData.answers[2]}
+            onChange={(e) =>
+              setFormData((prevFormData) => ({
+                ...prevFormData,
+                answers: [
+                  prevFormData.answers[0],
+                  prevFormData.answers[1],
+                  e.target.value,
+                  prevFormData.answers[3],
+                ],
+              }))
+            }
           />
         </label>
         <label>
@@ -67,8 +115,18 @@ function QuestionForm(props) {
           <input
             type="text"
             name="answer4"
-            value={formData.answer4}
-            onChange={handleChange}
+            value={formData.answers[3]}
+            onChange={(e) =>
+              setFormData((prevFormData) => ({
+                ...prevFormData,
+                answers: [
+                  prevFormData.answers[0],
+                  prevFormData.answers[1],
+                  prevFormData.answers[2],
+                  e.target.value,
+                ],
+              }))
+            }
           />
         </label>
         <label>
@@ -78,10 +136,11 @@ function QuestionForm(props) {
             value={formData.correctIndex}
             onChange={handleChange}
           >
-            <option value="0">{formData.answer1}</option>
-            <option value="1">{formData.answer2}</option>
-            <option value="2">{formData.answer3}</option>
-            <option value="3">{formData.answer4}</option>
+            {formData.answers.map((_, index) => (
+              <option key={index} value={index + 1}>
+                {index + 1}
+              </option>
+            ))}
           </select>
         </label>
         <button type="submit">Add Question</button>
